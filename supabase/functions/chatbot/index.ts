@@ -57,12 +57,19 @@ serve(async (req) => {
 
   try {
     const { message, conversationHistory = [] } = await req.json();
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY');
 
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
+    }
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return new Response(JSON.stringify({ type: 'error', message: 'Please enter a message.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const lowerMessage = message.toLowerCase();
@@ -105,37 +112,35 @@ serve(async (req) => {
       }
     }
 
-    // Build Gemini conversation contents
-    // Map prior history to Gemini format (role: user/model)
+    // Build conversation for Lovable AI Gateway (OpenAI-compatible format)
     const recentHistory = conversationHistory.slice(-6);
-    const contents = recentHistory.map((msg: { role: string; content: string }) => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }],
-    }));
+    const messages = [
+      { role: 'system', content: SYSTEM_INSTRUCTION },
+      ...recentHistory.map((msg: { role: string; content: string }) => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content,
+      })),
+      { role: 'user', content: message },
+    ];
 
-    // Add current user message
-    contents.push({ role: 'user', parts: [{ text: message }] });
-
-    // Call Gemini 1.5 Flash API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: SYSTEM_INSTRUCTION }],
-          },
-          contents,
-          generationConfig: {
-            maxOutputTokens: 500,
-            temperature: 0.7,
-          },
-        }),
-      }
-    );
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages,
+        max_tokens: 500,
+        temperature: 0.7,
+      }),
+    });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('AI Gateway error:', response.status, errorText);
+
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
           type: 'error',
@@ -145,11 +150,20 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      throw new Error(`Gemini API error: ${response.status}`);
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ 
+          type: 'error',
+          message: "AI credits exhausted. Please try again later." 
+        }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      throw new Error(`AI Gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text 
+    const aiMessage = data.choices?.[0]?.message?.content 
       ?? "I'm here to listen. Could you tell me more about what's on your mind?";
 
     return new Response(JSON.stringify({

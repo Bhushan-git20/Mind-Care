@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { Controller } from 'react-hook-form';
 
 const signInSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -17,6 +19,7 @@ const signInSchema = z.object({
 
 const signUpSchema = signInSchema.extend({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long'),
+  role: z.enum(['student', 'counselor', 'admin']),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -44,10 +47,14 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
   } = useForm<SignUpFormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      role: 'student',
+    }
   });
 
   const onSubmit = async (data: SignUpFormData) => {
@@ -59,7 +66,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
           navigate('/dashboard');
         }
       } else {
-        const { error } = await signUp(data.email, data.password, data.fullName);
+        const { error } = await signUp(data.email, data.password, data.fullName, data.role);
         if (!error) {
           reset();
           onToggleMode(); // Switch to sign in after successful registration
@@ -145,6 +152,31 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
               />
               {errors.fullName && (
                 <p className="text-sm text-destructive">{errors.fullName.message}</p>
+              )}
+            </div>
+          )}
+
+          {mode === 'signup' && (
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Controller
+                name="role"
+                control={control}
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <SelectTrigger id="role" className="w-full">
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="counselor">Counselor</SelectItem>
+                      <SelectItem value="admin">Administrator</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.role && (
+                <p className="text-sm text-destructive">{errors.role.message}</p>
               )}
             </div>
           )}

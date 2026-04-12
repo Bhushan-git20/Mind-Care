@@ -1,4 +1,4 @@
-project_id = "ynnxfvqxztabheooakpa"
+project_id = "dvmmavfoyjhunmifpugz"
 
 [functions.analyze-journal]
 verify_jwt = true

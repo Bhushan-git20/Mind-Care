@@ -1,6 +1,6 @@
-# MindMate 🧠💙
+# MindCare 🧠💙
 
-**MindMate** is a student-focused, comprehensive mental wellness and psychoeducation platform. Designed with a premium, glassmorphic UI, it empowers students to monitor, understand, and improve their mental well-being through science-backed screening tools, personalized insights, habit tracking, community support, and real-time AI-powered conversations.
+**MindCare** is a student-focused, comprehensive mental wellness and psychoeducation platform. Designed with a premium, glassmorphic UI, it empowers students to monitor, understand, and improve their mental well-being through science-backed screening tools, personalized insights, habit tracking, community support, and real-time AI-powered conversations.
 
 ---
 
@@ -183,10 +183,10 @@ If you are experiencing a crisis, please connect with standard counseling servic
 
 ## ⚠️ Medical Disclaimer
 
-MindMate is a **self-guided support, tracking, and psychoeducational tool**, not a substitute for clinical diagnosis, professional medical treatment, or therapy. If you are experiencing a mental health emergency, please contact a licensed therapist or emergency response services immediately.
+MindCare is a **self-guided support, tracking, and psychoeducational tool**, not a substitute for clinical diagnosis, professional medical treatment, or therapy. If you are experiencing a mental health emergency, please contact a licensed therapist or emergency response services immediately.
 
 ---
 
 ## 📜 License
 
-Educational and research purposes only. © 2026 MindMate. All rights reserved.
+Educational and research purposes only. © 2026 MindCare. All rights reserved.

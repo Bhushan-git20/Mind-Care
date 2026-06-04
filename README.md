@@ -2,6 +2,8 @@
 
 **MindCare** is a student-focused, comprehensive mental wellness and psychoeducation platform. Designed with a premium, glassmorphic UI, it empowers students to monitor, understand, and improve their mental well-being through science-backed screening tools, personalized insights, habit tracking, community support, and real-time AI-powered conversations.
 
+![MindCare Dashboard](screenshot.png)
+
 ---
 
 ## 🚀 Vision & Key Highlights

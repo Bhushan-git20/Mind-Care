@@ -31,3 +31,6 @@ dist-ssr
 .stitch/
 AGENTS.md
 design.md
+
+# Supabase internal
+supabase/.temp/

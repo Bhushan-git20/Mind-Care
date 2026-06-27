@@ -10,7 +10,7 @@
 
 - **Vibrant & Modern UI**: Built with dynamic light/dark mode themes utilizing Tailwind CSS, Framer Motion, and premium glassmorphism aesthetics.
 - **Science-Backed Self-Assessments**: Standardized clinical questionnaires (PHQ-9 & GAD-7) with immediate risk scoring and longitudinal progress tracking.
-- **AI-Powered Companionship**: Real-time, evidence-based coping suggestions from a supportive AI chatbot running on Supabase Edge Functions via Google's Gemini 1.5 Flash.
+- **AI-Powered Companionship**: Real-time, evidence-based coping suggestions from a supportive AI chatbot running on Supabase Edge Functions via Google's Gemini 2.5 Flash.
 - **Privacy & Safety First**: Fully client-side encrypted environment variables, private journaling, and a robust anonymous peer community feed with active content moderation edge functions.
 
 ---
@@ -43,7 +43,7 @@
 - **Moderate Post Edge Function**: Automatic content moderation to filter out sensitive or toxic content, keeping the community safe and encouraging.
 
 ### 🤖 Real-Time AI Chatbot
-- **Responsive Guidance**: Empathetic, real-time wellness support powered by Gemini 1.5 Flash.
+- **Responsive Guidance**: Empathetic, real-time wellness support powered by Gemini 2.5 Flash.
 - **Coping Strategies**: Suggests mindfulness techniques, CBT exercises, and focus improvements.
 - **Emergency Routing**: Detects crisis keywords and instantly overlays local helpline resources.
 
@@ -66,7 +66,7 @@
 | Layer | Technology |
 |---|---|
 | **Frontend Framework** | React 18 + TypeScript |
-| **Build & Dev Tool** | Vite 8 |
+| **Build & Dev Tool** | Vite 6 |
 | **Styling & Theme** | Tailwind CSS + shadcn/ui + next-themes |
 | **Routing** | React Router v6 |
 | **Data Fetching** | TanStack Query v5 |
@@ -75,7 +75,7 @@
 | **Animations** | Framer Motion (premium micro-interactions) |
 | **Database & Auth** | Supabase (PostgreSQL, Realtime, Row-Level Security) |
 | **Edge Compute** | Supabase Edge Functions (Deno / TypeScript) |
-| **AI Integration** | Google Gemini 1.5 Flash |
+| **AI Integration** | Google Gemini 2.5 Flash |
 | **Iconography** | Lucide React |
 
 ---
@@ -83,7 +83,7 @@
 ## 📁 Project Structure (High-Level)
 
 ```
-mindful-pathways/
+Mind-Care/
 ├── src/
 │   ├── pages/           # Premium, glassmorphic route components
 │   │   ├── Index.tsx    # Vibrant landing page with modern typography
@@ -126,8 +126,8 @@ mindful-pathways/
 
 ### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/Bhushan-git20/mindful-pathways.git
-cd mindful-pathways
+git clone https://github.com/Bhushan-git20/Mind-Care.git
+cd Mind-Care
 ```
 
 ### 2️⃣ Install Dependencies

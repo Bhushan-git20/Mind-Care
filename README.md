@@ -110,6 +110,7 @@ Mind-Care/
 ├── supabase/
 │   └── functions/       # Serverless Edge Functions
 │       ├── chatbot/              # Core Gemini AI chatbot integration
+│       ├── conversational-assessment/  # Conversational onboarding assessments
 │       ├── evaluate-assessment/  # Computes and persists screening scores
 │       ├── moderate-post/        # Content moderation for community board
 │       └── analyze-journal/      # Mood sentiment analysis on journal text
@@ -163,6 +164,7 @@ Ensure that your Supabase environment has the required secrets configured so the
 Deploy edge functions using the Supabase CLI:
 ```bash
 supabase functions deploy chatbot
+supabase functions deploy conversational-assessment
 supabase functions deploy evaluate-assessment
 supabase functions deploy moderate-post
 supabase functions deploy analyze-journal

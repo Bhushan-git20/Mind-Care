@@ -16,7 +16,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Lato',
+  				'Inter',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
@@ -29,7 +29,7 @@ export default {
   				'sans-serif'
   			],
   			display: [
-  				'Plus Jakarta Sans',
+  				'Outfit',
   				'Inter',
   				'system-ui',
   				'sans-serif'
@@ -110,59 +110,7 @@ export default {
   			info: {
   				DEFAULT: 'hsl(var(--info))',
   				foreground: 'hsl(var(--info-foreground))'
-  			},
-  			risk: {
-  				low: 'hsl(var(--risk-low))',
-  				medium: 'hsl(var(--risk-medium))',
-  				high: 'hsl(var(--risk-high))'
-  			},
-  			severity: {
-  				minimal: 'hsl(var(--severity-minimal))',
-  				mild: 'hsl(var(--severity-mild))',
-  				moderate: 'hsl(var(--severity-moderate))',
-  				'moderately-severe': 'hsl(var(--severity-moderately-severe))',
-  				severe: 'hsl(var(--severity-severe))'
-  			},
-            "on-surface": "#dce3ec",
-            "secondary-container": "#00eefc",
-            "on-primary": "#003351",
-            "tertiary-fixed-dim": "#cdbdff",
-            "surface-container-low": "#191c1e",
-            "secondary-stitch": "#7df4ff",
-            "on-secondary-fixed-variant": "#004f56",
-            "on-tertiary-fixed": "#201047",
-            "on-surface-variant": "#c0c7cd",
-            "on-secondary-container": "#002022",
-            "surface-container-high": "#282b2d",
-            "on-primary-container": "#bce5ff",
-            "on-secondary-stitch": "#00363b",
-            "primary-fixed-dim": "#91ceff",
-            "on-tertiary": "#392476",
-            "surface-container-highest": "#333538",
-            "error-stitch": "#ffb4ab",
-            "on-primary-fixed-variant": "#004a74",
-            "on-error": "#690005",
-            "tertiary-fixed": "#e6deff",
-            "on-surface-fixed": "#191c1e",
-            "primary-fixed": "#d1e9ff",
-            "on-tertiary-container": "#e6deff",
-            "surface-variant": "#40484d",
-            "on-tertiary-fixed-variant": "#4e398d",
-            "primary-container": "#004a74",
-            "on-primary-fixed": "#001e33",
-            "secondary-fixed-dim": "#7df4ff",
-            "tertiary-container": "#4e398d",
-            "on-error-container": "#ffdad6",
-            "primary-stitch": "#91ceff",
-            "on-surface-fixed-variant": "#40484d",
-            "on-secondary-fixed": "#002022",
-            "surface-container": "#1d2023",
-            "error-container": "#93000a",
-            "surface-bright": "#35393c",
-            "surface-container-lowest": "#0d1416",
-            "tertiary-stitch": "#cdbdff",
-            "outline": "#8a9297",
-            "outline-variant": "#40484d"
+  			}
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { JournalList } from "@/components/journal/JournalList";
 import PageShell from "@/components/layout/PageShell";
-import { Loader2, Sparkles, Save, Wand2 } from "lucide-react";
+import { Loader2, Sparkles, Save, Wand2, Lightbulb, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
@@ -30,29 +30,44 @@ export default function Journal() {
     if (!loading && !user) navigate("/auth");
   }, [user, loading, navigate]);
 
-  const fetchEntries = async () => {
+  useEffect(() => {
+    const fetchEntries = async () => {
+      if (!user) return;
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching entries:", error);
+      } else {
+        setEntries((data || []).map(entry => ({
+          ...entry,
+          risk_analysis: entry.risk_analysis as { summary?: string } | null
+        })));
+      }
+      setIsLoading(false);
+    };
+
+    if (user) fetchEntries();
+  }, [user]);
+
+  const fetchEntriesForRefresh = async () => {
     if (!user) return;
-    setIsLoading(true);
     const { data, error } = await supabase
       .from("journal_entries")
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching entries:", error);
-    } else {
+    if (!error) {
       setEntries((data || []).map(entry => ({
         ...entry,
         risk_analysis: entry.risk_analysis as { summary?: string } | null
       })));
     }
-    setIsLoading(false);
   };
-
-  useEffect(() => {
-    if (user) fetchEntries();
-  }, [user]);
 
   const handleSave = async () => {
     if (!content.trim() || !user) return;
@@ -71,7 +86,7 @@ export default function Journal() {
       toast.success("Entry saved successfully");
       setContent("");
       setSelectedMood(null);
-      fetchEntries();
+      fetchEntriesForRefresh();
       
       // Background risk analysis
       supabase.functions.invoke("analyze-journal", {
@@ -97,8 +112,9 @@ export default function Journal() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-primary flex items-center gap-2">
-          <Sparkles className="h-4 w-4" /> Loading Journal...
+        <div className="animate-pulse flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-primary" /> 
+          <span className="text-muted-foreground font-medium uppercase tracking-widest text-sm">Loading Journal...</span>
         </div>
       </div>
     );
@@ -107,18 +123,25 @@ export default function Journal() {
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <PageShell maxWidth="full" hideHeader>
-      <div className="atmospheric-bg"></div>
+    <PageShell maxWidth="full" showHeader={false}>
       
-      <main className="min-h-screen p-6 lg:p-12 pb-32">
-        <header className="max-w-4xl mx-auto flex justify-between items-end mb-12">
+      <main className="min-h-screen px-4 sm:px-6 lg:px-12 py-10 pb-32 animate-fade-in-up">
+        <header className="max-w-4xl mx-auto flex justify-between items-start mb-16">
           <div>
-            <p className="text-[12px] font-bold tracking-[0.2em] mb-2 uppercase text-secondary">{today}</p>
-            <h2 className="text-4xl font-display font-bold text-white">Daily Journal</h2>
+            <button 
+              onClick={() => navigate(-1)} 
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 font-medium text-sm hover:-translate-x-1 duration-200"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back
+            </button>
+            <p className="text-[11px] font-bold tracking-[0.2em] mb-3 uppercase text-primary border border-primary/20 bg-primary/10 px-3 py-1 rounded-full inline-block">
+              {today}
+            </p>
+            <h2 className="text-4xl md:text-5xl font-display font-bold text-foreground tracking-tight">Daily Journal</h2>
           </div>
           <div className="flex -space-x-2">
-            <div className="w-12 h-12 rounded-full border-2 border-background shadow-xl bg-primary flex items-center justify-center overflow-hidden">
-               <span className="text-xl font-bold text-white">{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
+            <div className="w-12 h-12 rounded-full border-2 border-background shadow-elevated bg-primary flex items-center justify-center overflow-hidden">
+               <span className="text-xl font-bold text-primary-foreground">{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
             </div>
           </div>
         </header>
@@ -126,17 +149,17 @@ export default function Journal() {
         <div className="max-w-4xl mx-auto space-y-12">
           
           {/* Mood Selector Section */}
-          <section>
-            <h3 className="text-xl font-display font-semibold mb-6 text-muted-foreground flex items-center gap-3">
-              <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>self_improvement</span>
+          <section className="premium-card p-8 bg-card/40 border-dashed border-border/60">
+            <h3 className="text-lg font-display font-semibold mb-6 text-foreground flex items-center gap-3">
+              <span className="text-xl">✨</span>
               How are you feeling right now?
             </h3>
-            <div className="mood-selector flex items-center justify-between p-6 md:p-8">
+            <div className="flex items-center justify-between px-2 md:px-8">
               {moods.map((mood) => (
                 <button 
                   key={mood.label}
                   onClick={() => setSelectedMood(mood.label)}
-                  className={`mood-item w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-3xl md:text-4xl ${selectedMood === mood.label ? 'selected border-2 border-secondary bg-secondary/10 transform -translate-y-2 scale-110' : ''}`}
+                  className={`w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center text-3xl md:text-4xl transition-all duration-300 ${selectedMood === mood.label ? 'ring-2 ring-primary bg-primary/10 transform -translate-y-2 scale-110 shadow-elevated' : 'hover:bg-secondary/10 hover:scale-105 opacity-60 hover:opacity-100'}`}
                 >
                   {mood.emoji}
                 </button>
@@ -146,27 +169,31 @@ export default function Journal() {
 
           {/* Main Writing Area */}
           <section className="relative group">
-            <div className="glass-card rounded-[2.5rem] p-8 md:p-12 min-h-[500px] flex flex-col gap-8">
-              <div className="flex items-start gap-6 border-b border-white/10 pb-8">
-                <span className="material-symbols-outlined text-secondary text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
+            <div className="premium-card p-8 md:p-12 min-h-[500px] flex flex-col gap-8 bg-card shadow-elevated border-border/50">
+              <div className="flex items-start gap-5 border-b border-border/40 pb-8">
+                <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0 border border-secondary/20">
+                  <Lightbulb className="text-secondary w-6 h-6" />
+                </div>
                 <div>
-                  <h4 className="text-2xl font-display font-semibold text-white mb-2">Morning Reflection</h4>
-                  <p className="text-lg text-zinc-400">"What is one small thing that brought you peace today?"</p>
+                  <h4 className="text-2xl font-display font-semibold text-foreground mb-2">Morning Reflection</h4>
+                  <p className="text-lg text-muted-foreground italic">"What is one small thing that brought you peace today?"</p>
                 </div>
               </div>
               <textarea 
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="inset-input flex-grow w-full rounded-2xl p-6 text-lg text-foreground placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all resize-none" 
+                className="flex-grow w-full rounded-2xl p-6 text-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background/50 border border-border/40 transition-all resize-none shadow-inner" 
                 placeholder="Start typing your thoughts here..."
               />
               <div className="flex flex-wrap gap-3">
                 {selectedMood && (
-                  <span className="px-4 py-2 glass-card rounded-full text-sm font-medium border-secondary/30 text-secondary">
+                  <span className="px-4 py-2 bg-primary/10 rounded-full text-xs font-bold uppercase tracking-widest border border-primary/20 text-primary">
                     #{selectedMood}
                   </span>
                 )}
-                <span className="px-4 py-2 glass-card rounded-full text-sm font-medium border-white/5 text-zinc-400">#Mindfulness</span>
+                <span className="px-4 py-2 bg-secondary/5 rounded-full text-xs font-bold uppercase tracking-widest border border-border/50 text-muted-foreground">
+                  #Mindfulness
+                </span>
               </div>
             </div>
 
@@ -175,24 +202,24 @@ export default function Journal() {
               <button 
                 onClick={handleSave}
                 disabled={isSaving || !content.trim()}
-                className="w-16 h-16 rounded-full glass-orb-fab flex items-center justify-center group/btn active:scale-90 transition-transform disabled:opacity-50"
+                className="w-16 h-16 rounded-full bg-primary flex items-center justify-center group/btn active:scale-95 transition-transform disabled:opacity-50 shadow-lg hover:shadow-xl hover:-translate-y-1"
               >
-                {isSaving ? <Loader2 className="animate-spin text-white" /> : (
-                  <Save className="text-white w-8 h-8 transition-transform group-hover/btn:rotate-12" />
+                {isSaving ? <Loader2 className="animate-spin text-primary-foreground" /> : (
+                  <Save className="text-primary-foreground w-7 h-7 transition-transform group-hover/btn:rotate-12" />
                 )}
-                <span className="absolute -left-20 bg-zinc-800 px-3 py-1 rounded-lg text-sm opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none text-white font-bold">Save</span>
+                <span className="absolute -left-20 bg-foreground px-3 py-1.5 rounded-lg text-xs opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none text-background font-bold shadow-md">Save</span>
               </button>
-              <button className="w-16 h-16 rounded-full glass-card border-secondary/30 flex items-center justify-center group/btn active:scale-90 transition-transform bg-zinc-900/80">
-                <Wand2 className="text-secondary w-7 h-7 group-hover/btn:scale-110 transition-transform" />
-                <span className="absolute -left-24 bg-zinc-800 px-3 py-1 rounded-lg text-sm opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none text-white font-bold">New Prompt</span>
+              <button className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center group/btn active:scale-95 transition-transform shadow-md hover:shadow-lg hover:-translate-y-1">
+                <Wand2 className="text-secondary w-6 h-6 group-hover/btn:scale-110 transition-transform" />
+                <span className="absolute -left-24 bg-foreground px-3 py-1.5 rounded-lg text-xs opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none text-background font-bold shadow-md">New Prompt</span>
               </button>
             </div>
           </section>
 
           {/* Past Entries */}
-          <section className="mt-12">
-            <h3 className="text-2xl font-display font-semibold text-white mb-6">Past Entries</h3>
-            <div className="glass-card rounded-[2.5rem] p-8">
+          <section className="mt-16">
+            <h3 className="text-2xl font-display font-semibold text-foreground mb-6">Past Entries</h3>
+            <div className="premium-card p-8">
               <JournalList entries={entries} isLoading={isLoading} />
             </div>
           </section>

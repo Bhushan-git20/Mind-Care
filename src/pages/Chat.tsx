@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import PageShell from '@/components/layout/PageShell';
-import { Send, Paperclip, Smile } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Send, Paperclip, Smile, Settings, Brain, ArrowLeft } from 'lucide-react';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -13,6 +14,7 @@ interface ChatMessage {
 
 export default function Chat() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
@@ -68,39 +70,43 @@ export default function Chat() {
   };
 
   return (
-    <PageShell maxWidth="full" hideHeader>
-      <div className="h-screen flex flex-col relative w-full pt-16 md:pt-0">
+    <PageShell maxWidth="full" showHeader={false} showFooter={false}>
+      <div className="h-screen flex flex-col relative w-full pt-16 md:pt-0 bg-mesh">
         {/* Header */}
-        <header className="sticky top-0 w-full flex justify-between items-center px-6 py-4 bg-white/5 dark:bg-zinc-900/30 backdrop-blur-xl border-b border-white/10 z-40">
+        <header className="sticky top-0 w-full flex justify-between items-center px-6 py-4 glass-panel border-b-0 border-x-0 rounded-b-3xl z-40">
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate(-1)} 
+              className="p-2 -ml-2 rounded-full hover:bg-secondary/10 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
             <div className="relative">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-sky-400 to-blue-600 p-[2px] shadow-lg shadow-sky-500/20">
-                <div className="w-full h-full rounded-full bg-zinc-900 overflow-hidden flex items-center justify-center">
-                  <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
-                </div>
+              <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Brain className="h-6 w-6 text-primary" />
               </div>
-              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-zinc-900 rounded-full shadow-sm"></div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-background rounded-full shadow-sm"></div>
             </div>
             <div>
-              <h2 className="text-lg font-display font-semibold text-primary">MindMate AI</h2>
-              <p className="text-xs text-zinc-500 flex items-center gap-1">
+              <h2 className="text-lg font-display font-semibold text-foreground">MindMate AI</h2>
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                 Always here for you
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2 glass-card rounded-full text-zinc-400 hover:text-white transition-colors">
-              <span className="material-symbols-outlined">settings</span>
+            <button className="p-2.5 rounded-full hover:bg-secondary/10 text-muted-foreground hover:text-foreground transition-colors">
+              <Settings className="w-5 h-5" />
             </button>
           </div>
         </header>
 
         {/* Chat Canvas */}
-        <section className="flex-grow overflow-y-auto px-6 py-8 space-y-8 scrollbar-hide">
+        <section className="flex-grow overflow-y-auto px-4 sm:px-6 py-8 space-y-8 scrollbar-hide">
           <div className="max-w-3xl mx-auto flex flex-col gap-8">
             <div className="flex justify-center">
-              <span className="px-4 py-1 glass-card rounded-full text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Today</span>
+              <span className="px-4 py-1.5 bg-secondary/5 rounded-full text-[10px] uppercase tracking-widest text-muted-foreground font-bold border border-border/50">Today</span>
             </div>
 
             {messages.map((msg, index) => (
@@ -111,18 +117,18 @@ export default function Chat() {
                 className={`flex gap-4 items-end ${msg.role === 'user' ? 'justify-end ml-auto max-w-[85%]' : 'max-w-[85%]'}`}
               >
                 {msg.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full bg-zinc-800 flex-shrink-0 border border-white/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                  <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex-shrink-0 flex items-center justify-center">
+                    <Brain className="text-primary w-4 h-4" />
                   </div>
                 )}
                 
-                <div className={`p-5 text-base ${msg.role === 'user' ? 'clay-pill-user rounded-tr-3xl rounded-tl-3xl rounded-bl-3xl text-white shadow-lg shadow-sky-900/40' : 'clay-pill-ai rounded-tr-3xl rounded-tl-3xl rounded-br-3xl text-foreground border-l-2 border-primary/30'}`}>
+                <div className={`p-5 text-[15px] leading-relaxed shadow-sm ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-[1.5rem] rounded-br-sm' : 'bg-card border border-border/50 text-foreground rounded-[1.5rem] rounded-bl-sm'}`}>
                   {msg.content}
                 </div>
 
                 {msg.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-white/20 bg-zinc-800 flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-border bg-secondary flex items-center justify-center">
+                    <span className="text-xs font-bold text-secondary-foreground">{user?.email?.charAt(0).toUpperCase() || 'U'}</span>
                   </div>
                 )}
               </motion.div>
@@ -130,13 +136,13 @@ export default function Chat() {
 
             {isLoading && (
               <div className="flex gap-4 items-end max-w-[85%]">
-                <div className="w-8 h-8 rounded-full bg-zinc-800 flex-shrink-0 border border-white/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
+                <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex-shrink-0 flex items-center justify-center">
+                  <Brain className="text-primary w-4 h-4" />
                 </div>
-                <div className="clay-pill-ai p-5 rounded-tr-3xl rounded-tl-3xl rounded-br-3xl flex gap-1 items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-bounce"></span>
-                  <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.2s' }}></span>
-                  <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                <div className="bg-card border border-border/50 p-5 rounded-[1.5rem] rounded-bl-sm flex gap-1.5 items-center">
+                  <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce"></span>
+                  <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                  <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '0.4s' }}></span>
                 </div>
               </div>
             )}
@@ -145,31 +151,30 @@ export default function Chat() {
         </section>
 
         {/* Message Input */}
-        <footer className="p-6 bg-gradient-to-t from-background to-transparent shrink-0">
+        <footer className="p-4 sm:p-6 bg-gradient-to-t from-background via-background to-transparent shrink-0">
           <div className="max-w-3xl mx-auto relative group">
-            <div className="clay-inset-input rounded-full px-6 py-4 flex items-center gap-4 border border-white/5 transition-all focus-within:ring-2 focus-within:ring-primary/30">
-              <button className="p-2 text-zinc-500 hover:text-primary transition-colors">
+            <div className="bg-card shadow-elevated rounded-full px-6 py-3.5 flex items-center gap-4 border border-border/50 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30">
+              <button className="p-2 text-muted-foreground hover:text-primary transition-colors">
                 <Smile className="w-5 h-5" />
               </button>
               <input 
-                className="flex-grow bg-transparent border-none focus:ring-0 text-white placeholder-zinc-600 outline-none" 
+                className="flex-grow bg-transparent border-none focus:ring-0 text-foreground placeholder-muted-foreground outline-none text-[15px]" 
                 placeholder="Share your thoughts with MindMate..." 
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               />
               <div className="flex items-center gap-2">
-                <button className="p-2 text-zinc-500 hover:text-primary transition-colors">
+                <button className="p-2 text-muted-foreground hover:text-primary transition-colors hidden sm:block">
                   <Paperclip className="w-5 h-5" />
                 </button>
-                <button onClick={handleSend} disabled={!input.trim() || isLoading} className="clay-button-primary p-3 rounded-full text-white flex items-center justify-center hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100">
-                  <Send className="w-5 h-5" />
+                <button onClick={handleSend} disabled={!input.trim() || isLoading} className="bg-primary text-primary-foreground p-3 rounded-full flex items-center justify-center hover-lift disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none shadow-md">
+                  <Send className="w-4 h-4 ml-0.5" />
                 </button>
               </div>
             </div>
-            <div className="absolute -inset-2 bg-primary/5 blur-2xl rounded-full -z-10 group-focus-within:bg-primary/10 transition-colors"></div>
           </div>
-          <p className="text-center text-[10px] text-zinc-600 mt-4 font-bold tracking-widest uppercase">MindMate can provide support but is not a medical professional.</p>
+          <p className="text-center text-[10px] text-muted-foreground mt-4 font-bold tracking-widest uppercase">MindMate can provide support but is not a medical professional.</p>
         </footer>
       </div>
     </PageShell>

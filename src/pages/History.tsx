@@ -76,6 +76,7 @@ export default function History() {
     if (user) {
       fetchAssessments();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchAssessments = async () => {

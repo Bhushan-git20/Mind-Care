@@ -331,8 +331,8 @@ export default function Admin() {
       }
       setResourceDialogOpen(false);
       fetchDbResources();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to save resource');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to save resource');
     } finally {
       setIsSavingResource(false);
     }
@@ -345,8 +345,8 @@ export default function Admin() {
       if (error) throw error;
       toast.success('Resource deleted');
       fetchDbResources();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to delete resource');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete resource');
     }
   };
 
@@ -364,7 +364,7 @@ export default function Admin() {
     setResourceDialogOpen(true);
   };
 
-  const openEditResource = (resource: any) => {
+  const openEditResource = (resource: Database['public']['Tables']['resources']['Row']) => {
     setEditingResource(resource);
     setResourceFormData({
       title: resource.title,
@@ -486,9 +486,9 @@ export default function Admin() {
       toast.success(`Added ${newRole} role to user`);
       setRoleChangeOpen(false);
       fetchManagedUsers();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error changing role:', error);
-      toast.error(error.message || 'Failed to change role');
+      toast.error(error instanceof Error ? error.message : 'Failed to change role');
     }
   };
 
@@ -513,8 +513,8 @@ export default function Admin() {
       if (error) throw error;
       toast.success(`Removed ${role} role`);
       fetchManagedUsers();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to remove role');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to remove role');
     }
   };
 
@@ -538,9 +538,9 @@ export default function Admin() {
       setUserDetailOpen(false);
       setSelectedUser(null);
       fetchManagedUsers();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting user:', error);
-      toast.error(error.message || 'Failed to delete user');
+      toast.error(error instanceof Error ? error.message : 'Failed to delete user');
     } finally {
       setDeletingUser(false);
     }
@@ -1106,7 +1106,7 @@ export default function Admin() {
 
   const handleMarkNotificationRead = async (id: string) => {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-    setDbNotifications(prev => prev.map((n: any) => n.id === id ? { ...n, is_read: true } : n));
+    setDbNotifications(prev => prev.map((n) => n.id === id ? { ...n, is_read: true } : n));
     toast.success('Alert marked as resolved');
   };
 

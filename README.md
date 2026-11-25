@@ -15,41 +15,53 @@
 
 ---
 
-## ✨ Comprehensive Feature Suite (6 Core Working Modules)
+## 📝 What I Built & Project Origin
+
+The early development history of MindCare was scaffolded using [Lovable.dev](https://lovable.dev) (~120 automated commits across early prototyping), which established the initial React + Vite + Tailwind/shadcn component library and base routing skeletons.
+
+**All backend architecture, AI safety layers, database migrations, and domain logic are my original work**, including:
+- **Direct Gemini 2.5 Flash Migration**: Replaced third-party AI gateway dependencies with direct, serverless Google Gemini 2.5 Flash API calls (`GEMINI_API_KEY`) across all Supabase Edge Functions.
+- **3-Tier AI Chatbot Architecture**: Built the deterministic Tier 1 crisis scanner (immediate Indian national hotline routing), Tier 2 PostgreSQL FAQ database lookup, and Tier 3 multi-turn empathetic conversational engine.
+- **Serverless Edge Functions**: Authored, hardened, and maintained all 5 Deno Edge Functions (`chatbot`, `analyze-journal`, `moderate-post`, `evaluate-assessment`, `conversational-assessment`) with input bounds checking, sanitized error boundaries, and JWT user-verification.
+- **Database & Security Hardening**: Authored PostgreSQL migrations defining `app_role` enums, `user_roles` RBAC management, `has_role()` security definers, and granular Row-Level Security (RLS) policies per table.
+- **Standardized Scoring Algorithms**: Pure TypeScript implementations of standardized PHQ-9 (0–27) and GAD-7 (0–21) clinical cutoffs with suicidal ideation circuit-breaker safety triggers.
+- **Test Suites & WCAG Accessibility**: Vitest unit test suites, WCAG keyboard navigation (`tabIndex`, `onKeyDown`), screen-reader attributes (`aria-label`, `aria-pressed`, `aria-live`), and GitHub Actions CI automation.
+
+---
 
 ### 1. 📋 Mental Wellness Screening Module
-- **Primary Source File**: [`src/pages/Assessments.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Assessments.tsx) | [`src/components/assessments/AssessmentForm.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/components/assessments/AssessmentForm.tsx)
+- **Primary Source File**: [`src/pages/Assessments.tsx`](src/pages/Assessments.tsx) | [`src/components/assessments/AssessmentForm.tsx`](src/components/assessments/AssessmentForm.tsx)
 - **Standardized Questionnaires**: Combined PHQ-9 (9 items, Depression screening) & GAD-7 (7 items, Anxiety screening) with intuitive 0–3 frequency selectors.
-- **Deterministic Severity Banding**: Instant client-side scoring mapping raw points to validated severity tiers (`minimal`, `mild`, `moderate`, `moderately_severe`, `severe`) defined in [`src/data/assessmentQuestions.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/data/assessmentQuestions.ts).
+- **Deterministic Severity Banding**: Instant client-side scoring mapping raw points to validated severity tiers (`minimal`, `mild`, `moderate`, `moderately_severe`, `severe`) defined in [`src/data/assessmentQuestions.ts`](src/data/assessmentQuestions.ts).
 - **Suicidal Ideation Circuit-Breaker**: Immediate high-risk routing and helpline presentation if PHQ-9 item 9 is scored > 0, regardless of composite score.
-- **Edge Function Evaluation**: Dedicated Supabase Edge Function ([`supabase/functions/evaluate-assessment/index.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/supabase/functions/evaluate-assessment/index.ts)) securely evaluates nuanced emotional context with Gemini 2.5 Flash and persists records under authenticated user RLS.
+- **Edge Function Evaluation**: Dedicated Supabase Edge Function ([`supabase/functions/evaluate-assessment/index.ts`](supabase/functions/evaluate-assessment/index.ts)) securely evaluates nuanced emotional context with Gemini 2.5 Flash and persists records under authenticated user RLS.
 
 ### 2. 🤖 3-Tier AI Chatbot Companion
-- **Primary Source File**: [`src/pages/Chat.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Chat.tsx) | [`supabase/functions/chatbot/index.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/supabase/functions/chatbot/index.ts)
+- **Primary Source File**: [`src/pages/Chat.tsx`](src/pages/Chat.tsx) | [`supabase/functions/chatbot/index.ts`](supabase/functions/chatbot/index.ts)
 - **Tier 1 (Safety Guardrail)**: Deterministic regex/keyword scanner against acute crisis indicators (`suicide`, `self-harm`, etc.). Bypasses LLM immediately to present verified emergency hotlines (iCall, Vandrevala Foundation, NIMHANS).
 - **Tier 2 (FAQ Knowledge Match)**: Instant PostgreSQL lookup against `chatbot_faqs` table for active student psychoeducation answers at zero latency and zero token cost.
-- **Tier 3 (Generative AI Reasoning)**: Multi-turn conversational guidance powered by Google Gemini 2.5 Flash with strict psychoeducational boundaries (non-clinical, empathetic coping strategies, student-centric advice).
+- **Tier 3 (Generative AI Reasoning)**: Multi-turn conversational guidance powered directly by Google Gemini 2.5 Flash API with strict psychoeducational boundaries (non-clinical, empathetic coping strategies, student-centric advice).
 
 ### 3. 📓 Mood-Coded Journaling
-- **Primary Source File**: [`src/pages/Journal.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Journal.tsx) | [`supabase/functions/analyze-journal/index.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/supabase/functions/analyze-journal/index.ts)
+- **Primary Source File**: [`src/pages/Journal.tsx`](src/pages/Journal.tsx) | [`supabase/functions/analyze-journal/index.ts`](supabase/functions/analyze-journal/index.ts)
 - **Private Reflections**: User entries saved directly to `journal_entries` PostgreSQL table strictly protected by Row-Level Security (`auth.uid() = user_id`).
-- **AI Sentiment Tagging**: Asynchronous sentiment analysis categorizing entries (Positive, Neutral, Negative) and flagging elevated risk patterns.
+- **AI Sentiment Tagging**: Asynchronous sentiment analysis via Gemini 2.5 Flash categorizing entries (Positive, Neutral, Negative) and flagging elevated risk patterns.
 - **Mood History**: Visual mood selector and chronological reflective feed.
 
 ### 4. 🧘 Interactive Habit Tracking
-- **Primary Source File**: [`src/pages/Habits.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Habits.tsx)
+- **Primary Source File**: [`src/pages/Habits.tsx`](src/pages/Habits.tsx)
 - **Resilience Routines**: Daily habit trackers (Morning Meditation, Hydration, Sleep Hygiene, Screen Breaks, Physical Exercise).
 - **Streak & Consistency Matrix**: Rolling 7-day completion grid calculating consecutive completion streaks to encourage student consistency.
 - **AI Recommendations**: Suggestions inferred from screening summaries to suggest personalized wellness habits.
 
 ### 5. 🤝 Anonymous Peer Support Community
-- **Primary Source File**: [`src/pages/Community.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Community.tsx) | [`supabase/functions/moderate-post/index.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/supabase/functions/moderate-post/index.ts)
+- **Primary Source File**: [`src/pages/Community.tsx`](src/pages/Community.tsx) | [`supabase/functions/moderate-post/index.ts`](supabase/functions/moderate-post/index.ts)
 - **Safe Student Space**: Anonymous student peer sharing board with pseudonymous avatars and categorized tags (`#Wins`, `#Support`, `#Gratitude`, `#Struggles`).
-- **Pre-Publish Content Moderation**: Edge Function runs input through content safety filters to block toxic or sensitive content before publication.
+- **Pre-Publish Content Moderation**: Edge Function runs input through Gemini 2.5 Flash and fast-path crisis filters to block toxic or sensitive content before publication.
 - **Interactive Peer Hugs**: Uplifting peer reactions and encouragement counters.
 
 ### 6. 🛡️ Multi-Role Admin & Supervisor Panel
-- **Primary Source File**: [`src/pages/Admin.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Admin.tsx)
+- **Primary Source File**: [`src/pages/Admin.tsx`](src/pages/Admin.tsx)
 - **Role-Based Access Control (RBAC)**: Enforced via `user_roles` PostgreSQL table and `public.has_role(auth.uid(), 'admin')` security definer checks.
 - **User Role Management**: Promotes/demotes user roles across `student`, `counselor`, and `admin` tiers.
 - **Risk Alert Center**: Aggregates automated risk alerts from student assessment spikes for counselor supervisor visibility.
@@ -118,11 +130,12 @@ Mind-Care/
 
 ## 🧪 Testing & Continuous Integration
 
-MindCare includes automated unit tests, clinical scoring verification, and database security isolation tests via Vitest:
+MindCare includes automated unit tests, clinical scoring verification, edge function validation, and database security policy tests via Vitest:
 
 - **Screening & Scoring Tests**: [`src/test/assessment-scoring.test.ts`](src/test/assessment-scoring.test.ts) (18 unit tests validating PHQ-9 & GAD-7 boundary conditions, cutoffs, and suicidal ideation circuit-breaker logic).
-- **Row-Level Security (RLS) Isolation Tests**: [`src/test/rls-isolation.test.ts`](src/test/rls-isolation.test.ts) (15 tests verifying dual-account isolation between students Alice and Bob, preventing cross-tenant reads, spoofed writes, and unauthorized role elevation).
-- **CI Workflow**: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) executes linting, unit tests (33/33 passing), and production build on every push and pull request.
+- **Row-Level Security (RLS) Policy Logic Tests**: [`src/test/rls-policy-logic.test.ts`](src/test/rls-policy-logic.test.ts) (15 unit test simulations verifying the mathematical correctness of RLS predicates: cross-tenant isolation between Alice and Bob, spoofed write prevention, and RBAC role-escalation constraints in memory).
+- **Edge Functions Validation Tests**: [`src/test/edge-functions-validation.test.ts`](src/test/edge-functions-validation.test.ts) (4 tests verifying live Gemini 2.5 Flash model configuration, secret isolation, and deterministic crisis/moderation keyword triggers).
+- **CI Workflow**: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) executes linting, all 37 Vitest tests (37/37 passing), and production build on every push and pull request.
 
 Run tests locally:
 ```bash
@@ -207,6 +220,7 @@ MindCare is a **self-guided support, tracking, and psychoeducational tool**, not
 
 ---
 
-## 📜 License
+## 📜 Timeline & License
 
-Educational and research purposes only. © 2026 MindCare. All rights reserved.
+- **Development Timeline**: December 2025 – July 2026
+- **License**: Educational and research purposes only. © 2025–2026 MindCare. All rights reserved.

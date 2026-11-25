@@ -1,15 +1,16 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 
 /**
- * MindCare Row-Level Security (RLS) Policy Test Suite
+ * MindCare Row-Level Security (RLS) Policy Specification & Logic Tests
  *
- * Replicates and validates the exact PostgreSQL RLS logic defined in:
+ * NOTE: These are in-memory unit test simulations of PostgreSQL RLS policy rules and RBAC
+ * predicates in TypeScript memory (evaluating auth.uid(), role checks, and tenant
+ * boundary conditions without connecting to a live database daemon).
+ *
+ * Directly mirrors policies from:
  * - supabase/migrations/20251207131647_b0aff68c-447a-4c63-87e3-6838f1e7bbc1.sql
  * - supabase/migrations/20260101151301_7e9482f0-1c84-42a6-9962-4aa62210e68e.sql
  * - supabase/migrations/20260303103429_9a6675c9-e83e-473e-a11a-82ddacd2534a.sql
- *
- * Verifies strict data isolation across two distinct student accounts (Alice vs Bob),
- * and verifies elevated access boundaries for counselors and admins.
  */
 
 // Simulated users
@@ -173,7 +174,7 @@ class MockSupabaseDB {
   }
 }
 
-describe("MindCare Row-Level Security (RLS) Dual-Account Isolation", () => {
+describe("MindCare Row-Level Security (RLS) Specification Tests (Simulation)", () => {
   let db: MockSupabaseDB;
 
   beforeEach(() => {
@@ -271,7 +272,6 @@ describe("MindCare Row-Level Security (RLS) Dual-Account Isolation", () => {
       expect(bobChats).toHaveLength(1);
       expect(bobChats[0].content).toContain("overwhelmed");
 
-      // Verify no cross-leakage
       expect(bobChats.some((c) => c.user_id === ALICE_ID)).toBe(false);
     });
 

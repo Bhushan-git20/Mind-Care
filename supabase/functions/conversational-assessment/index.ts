@@ -6,24 +6,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SYSTEM_INSTRUCTION = `You are MindMate, an intelligent, empathetic clinical AI companion for students.
-Your goal is to conduct a conversational mental health assessment (replacing static PHQ-9/GAD-7 forms).
-You must evaluate the user's mood, anxiety, and safety through natural, warm conversation.
+const SYSTEM_INSTRUCTION = `You are MindMate, an intelligent, empathetic AI companion for student wellness.
+Your goal is to conduct a conversational mental health assessment through natural, warm conversation.
+You must evaluate the user's mood, anxiety, and safety.
 
 INSTRUCTIONS:
 1. Ask ONE thoughtful question at a time. Keep it conversational and empathetic.
 2. If you DO NOT have enough context to confidently assess their risk level (usually takes 3-4 turns), set "isComplete": false and provide your next question in "replyText".
-3. If the user mentions self-harm, suicide, or severe crisis, IMMEDIATELY set "isComplete": true and "riskLevel": "High". Provide a highly supportive "replyText" indicating you are connecting them to help.
+3. If the user mentions self-harm, suicide, or severe crisis, IMMEDIATELY set "isComplete": true and "riskLevel": "High". Provide a highly supportive "replyText" connecting them to crisis support.
 4. Once you have a clear picture of their wellness, set "isComplete": true.
-5. When "isComplete": true, you MUST provide a "riskLevel" (Low, Medium, High), a "clinicalSummary" (for a counselor), and "suggestedHabits" (1-3 actionable smart habits based on their specific concerns, e.g., "Sleep routine", "5-min mindfulness").
+5. When "isComplete": true, provide "riskLevel" (Low, Medium, High), a "clinicalSummary" (for a student counselor), and "suggestedHabits" (1-3 actionable habits, e.g., "Sleep routine", "5-min mindfulness").
 
-STRICT RULE: Your output MUST be ONLY a raw JSON object matching the exact schema below. DO NOT wrap the JSON in markdown formatting (like \`\`\`json). Just return the raw JSON object.
-
+STRICT RULE: Return ONLY a raw JSON object matching the exact schema below:
 {
   "isComplete": boolean,
   "replyText": "Your conversational response or next question to the user",
   "riskLevel": "Low" | "Medium" | "High" | null,
-  "clinicalSummary": "Brief clinical summary of their state if complete, else null",
+  "clinicalSummary": "Brief summary of their state if complete, else null",
   "suggestedHabits": ["Habit 1", "Habit 2"]
 }`;
 
@@ -34,7 +33,7 @@ serve(async (req) => {
 
   try {
     const { message, conversationHistory = [] } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
     // Verify Authentication
     const authHeader = req.headers.get('Authorization');
@@ -60,8 +59,8 @@ serve(async (req) => {
       }
     }
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured in Supabase secrets');
     }
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
@@ -71,50 +70,60 @@ serve(async (req) => {
       });
     }
 
-    const recentHistory = conversationHistory.slice(-10); // Keep last 10 messages for context
-    const messages = [
-      { role: 'system', content: SYSTEM_INSTRUCTION },
-      ...recentHistory.map((msg: { role: string; content: string }) => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
-      })),
-      { role: 'user', content: message },
-    ];
+    const recentHistory = conversationHistory.slice(-8);
+    const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages,
-        temperature: 0.7,
-        response_format: { type: "json_object" }
-      }),
+    for (const msg of recentHistory) {
+      if (!msg.content || typeof msg.content !== 'string') continue;
+      contents.push({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      });
+    }
+
+    contents.push({
+      role: 'user',
+      parts: [{ text: message.trim() }]
     });
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{ text: SYSTEM_INSTRUCTION }]
+          },
+          contents,
+          generationConfig: {
+            maxOutputTokens: 600,
+            temperature: 0.7,
+            response_mime_type: "application/json"
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
+      console.error('Gemini error in conversational assessment:', response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    let aiMessage = data.choices?.[0]?.message?.content || "{}";
-    
-    // Clean up potential markdown formatting if the LLM ignores instructions
+    let aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
     aiMessage = aiMessage.replace(/```json/g, '').replace(/```/g, '').trim();
 
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(aiMessage);
-    } catch (e) {
-      console.error("Failed to parse JSON from AI:", aiMessage);
+    } catch {
       parsedResponse = {
         isComplete: false,
-        replyText: "I'm having a little trouble understanding right now. Could you tell me more about how you're feeling?",
+        replyText: "I'm having a little trouble understanding right now. Could you share a bit more about how you're feeling?",
         riskLevel: null,
         clinicalSummary: null,
         suggestedHabits: []
@@ -128,9 +137,14 @@ serve(async (req) => {
   } catch (error) {
     console.error('Conversational assessment error:', error);
     return new Response(JSON.stringify({ 
-      error: 'I encountered an issue connecting. Please try again.'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      isComplete: false,
+      replyText: "I encountered a connection hiccup. How are you feeling today?",
+      riskLevel: null,
+      clinicalSummary: null,
+      suggestedHabits: []
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

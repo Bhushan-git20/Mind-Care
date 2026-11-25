@@ -17,7 +17,7 @@ const CRISIS_RESPONSE = {
 
 **If you're in immediate danger, please:**
 - Call **9152987821** (iCall Psychosocial Helpline)
-- Call **1860-2662-345** (Vandrevala Foundation – 24/7)
+- Call **1860-2662-345** (Vandrevala Foundation — 24/7)
 - Call **080-46110007** (NIMHANS Helpline)
 - Go to your nearest hospital emergency ward
 - Contact your campus counseling centre
@@ -27,28 +27,26 @@ You don't have to face this alone. A trained counsellor can help you through thi
 Would you like me to share some campus resources?`
 };
 
-const SYSTEM_INSTRUCTION = `You are a supportive, empathetic mental health assistant for a student wellness platform. Your role is to:
+const SYSTEM_INSTRUCTION = `You are a supportive, empathetic mental wellness assistant for a student platform. Your role is to:
 
-1. Provide psychoeducation about mental health topics (anxiety, stress, depression, sleep)
-2. Suggest evidence-based coping strategies
+1. Provide psychoeducation about common student challenges (anxiety, stress, depression, sleep, exam pressure)
+2. Suggest evidence-based coping strategies and mindfulness exercises
 3. Offer encouragement and validation
-4. Guide users to appropriate resources
+4. Guide users to appropriate student and campus resources
 
 STRICT BOUNDARIES - You must NEVER:
 - Provide clinical diagnoses
 - Prescribe medications or dosages
-- Offer therapy or treatment
-- Claim to replace professional help
+- Offer therapy or psychiatric treatment
+- Claim to replace professional healthcare
 - Give medical advice
 
 ALWAYS:
-- Remind users this is a self-help tool, not therapy
-- Encourage seeking professional help for persistent issues
-- If someone mentions crisis/self-harm, immediately provide crisis resources
+- Remind students this is a self-guided support tool, not medical therapy
+- Encourage seeking professional counseling for persistent distress
+- If crisis or self-harm is mentioned, prioritize safety immediately
 - Keep responses warm, brief (2-3 paragraphs max), and actionable
-- Use "I" statements sparingly, focus on "you"
-
-If asked about your capabilities, explain you're an AI assistant for mental wellness education and support, not a therapist.`;
+- Use "I" statements sparingly, focus on "you"`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -57,7 +55,7 @@ serve(async (req) => {
 
   try {
     const { message, conversationHistory = [] } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY');
     const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
@@ -84,10 +82,6 @@ serve(async (req) => {
       }
     }
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return new Response(JSON.stringify({ type: 'error', message: 'Please enter a message.' }), {
         status: 400,
@@ -97,7 +91,9 @@ serve(async (req) => {
 
     const lowerMessage = message.toLowerCase();
 
-    // Check for crisis keywords first
+    // =========================================================================
+    // Tier 1: Crisis Keyword Check (Deterministic Safety Guardrail)
+    // =========================================================================
     const hasCrisisKeyword = CRISIS_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
     if (hasCrisisKeyword) {
       return new Response(JSON.stringify(CRISIS_RESPONSE), {
@@ -105,7 +101,9 @@ serve(async (req) => {
       });
     }
 
-    // Try FAQ matching first
+    // =========================================================================
+    // Tier 2: FAQ Knowledge Base Matching (Database Lookup)
+    // =========================================================================
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
       
@@ -135,59 +133,71 @@ serve(async (req) => {
       }
     }
 
-    // Build conversation for Lovable AI Gateway (OpenAI-compatible format)
-    const recentHistory = conversationHistory.slice(-6);
-    const messages = [
-      { role: 'system', content: SYSTEM_INSTRUCTION },
-      ...recentHistory.map((msg: { role: string; content: string }) => ({
-        role: msg.role === 'assistant' ? 'assistant' : 'user',
-        content: msg.content,
-      })),
-      { role: 'user', content: message },
-    ];
+    // =========================================================================
+    // Tier 3: Direct Google Gemini 2.5 Flash API (Decoupled from 3rd-party gateways)
+    // =========================================================================
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured in Supabase secrets');
+    }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages,
-        max_tokens: 500,
-        temperature: 0.7,
-      }),
+    // Prepare multi-turn contents for Gemini API (user / model roles)
+    const recentHistory = conversationHistory.slice(-8);
+    const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
+
+    for (const msg of recentHistory) {
+      if (!msg.content || typeof msg.content !== 'string') continue;
+      contents.push({
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+      });
+    }
+
+    // Append current user message
+    contents.push({
+      role: 'user',
+      parts: [{ text: message.trim() }]
     });
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{ text: SYSTEM_INSTRUCTION }]
+          },
+          contents,
+          generationConfig: {
+            maxOutputTokens: 600,
+            temperature: 0.7,
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('Gemini API error in chatbot:', response.status, errorText);
 
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
           type: 'error',
-          message: "I'm a bit busy right now. Please try again in a moment." 
+          message: "I'm experiencing high demand right now. Please take a mindful breath and try again in a moment." 
         }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          type: 'error',
-          message: "AI credits exhausted. Please try again later." 
-        }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      throw new Error(`AI Gateway error: ${response.status}`);
+
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiMessage = data.choices?.[0]?.message?.content 
-      ?? "I'm here to listen. Could you tell me more about what's on your mind?";
+    const aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text
+      ?? "I'm here to listen. Could you share a bit more about what you're experiencing?";
 
     return new Response(JSON.stringify({
       type: 'ai',
@@ -200,7 +210,7 @@ serve(async (req) => {
     console.error('Chatbot error:', error);
     return new Response(JSON.stringify({ 
       type: 'error',
-      message: 'I encountered an issue. Please try again or reach out to campus support if you need immediate help.'
+      message: 'I encountered an issue connecting right now. Please try again or reach out to campus counseling for immediate support.'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

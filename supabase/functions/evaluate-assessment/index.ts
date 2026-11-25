@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -39,27 +38,34 @@ serve(async (req) => {
       }
     }
 
-    const apiKey = Deno.env.get('LOVABLE_API_KEY') || Deno.env.get('GEMINI_API_KEY');
-    if (!apiKey) {
-      throw new Error("Missing Gemini API key");
+    // Strictly use GEMINI_API_KEY
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error("Missing GEMINI_API_KEY in environment secrets");
+    }
+
+    if (!Array.isArray(responses) || !Array.isArray(questions)) {
+      return new Response(JSON.stringify({ error: 'Invalid responses or questions payload.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const prompt = `
-    You are a clinical psychologist evaluator. A user has just completed a mental wellness assessment containing standard psychological questions (PHQ-9 and GAD-7).
+    You are an expert student wellness evaluator. A student has just completed a mental wellness screening (PHQ-9 and GAD-7).
     
-    Here are the questions and the user's responses (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day):
-    ${questions.map((q: { text: string }, i: number) => `Q: ${q.text} | Answer Score: ${responses[i]}`).join('\n')}
+    Here are the questions and responses (0 = Not at all, 1 = Several days, 2 = More than half the days, 3 = Nearly every day):
+    ${questions.map((q: { text: string } | string, i: number) => `Q: ${typeof q === 'string' ? q : q.text} | Answer: ${responses[i] ?? 0}`).join('\n')}
 
-    Analyze these responses. Provide an honest, compassionate evaluation. DO NOT just add the scores up. Look at the context of what they are experiencing. Are they giving positive answers because they misunderstand the scale, or are they genuinely struggling? Provide a nuanced risk level.
-
+    Analyze these responses with clinical empathy and context.
     Respond in JSON format with exactly this structure:
     {
       "overallRisk": "low" | "medium" | "high",
-      "overallInterpretation": "A 2-3 sentence compassionate, professional summary of their current mental state based on their specific answers."
+      "overallInterpretation": "A 2-3 sentence compassionate, non-diagnostic summary of their current mental wellness state."
     }
     `;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -69,19 +75,32 @@ serve(async (req) => {
           parts: [{ text: prompt }]
         }],
         generationConfig: {
-          responseMimeType: "application/json",
+          temperature: 0.2,
+          maxOutputTokens: 400,
+          response_mime_type: "application/json",
         }
       })
     });
 
-    const data = await response.json();
-    console.log("Gemini Response:", data);
-
-    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-      throw new Error("Invalid response from Gemini");
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Gemini evaluation error (${response.status}):`, errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
-    const aiResponse = JSON.parse(data.candidates[0].content.parts[0].text);
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      throw new Error("Empty candidate output from Gemini");
+    }
+
+    let aiResponse;
+    try {
+      aiResponse = JSON.parse(text);
+    } catch {
+      const cleanJson = text.replace(/^```json/, '').replace(/```$/, '').trim();
+      aiResponse = JSON.parse(cleanJson);
+    }
 
     return new Response(JSON.stringify(aiResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -89,8 +108,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error evaluating assessment:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
-      status: 500,
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : "Unknown error",
+      overallRisk: "medium",
+      overallInterpretation: "Your screening scores have been recorded. Please review the breakdown below."
+    }), {
+      status: 200, // Return graceful fallback to client
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

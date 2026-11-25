@@ -36,6 +36,7 @@ export function AssessmentQuestion({
         value={value?.toString()}
         onValueChange={(val) => onChange(parseInt(val))}
         className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2"
+        aria-label={`Question ${questionNumber}: ${question}`}
       >
         {RESPONSE_OPTIONS.map((option) => (
           <div key={option.value} className="flex items-center space-x-2">

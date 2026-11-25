@@ -61,12 +61,16 @@ export default function AppHeader() {
     <header className="glass-panel sticky top-0 z-50 rounded-b-3xl border-t-0 border-x-0 transition-all duration-300">
       <div className="container flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 mx-auto">
         {/* Logo */}
-        <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/dashboard')}>
+        <button
+          className="flex items-center gap-3 cursor-pointer group text-left rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary p-1 -m-1"
+          onClick={() => navigate('/dashboard')}
+          aria-label="MindMate Home Dashboard"
+        >
           <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-105 border border-primary/20">
             <Brain className="h-5 w-5 text-primary" />
           </div>
           <span className="text-xl font-semibold font-display tracking-tight text-foreground">MindMate</span>
-        </div>
+        </button>
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-1">
@@ -104,6 +108,7 @@ export default function AppHeader() {
             size="sm"
             onClick={() => navigate('/notifications')}
             className="relative h-9 w-9 rounded-full hover:bg-secondary/10"
+            aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
           >
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
@@ -122,7 +127,7 @@ export default function AppHeader() {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2 rounded-full hover:bg-secondary/10 pl-2">
+              <Button variant="ghost" size="sm" className="gap-2 rounded-full hover:bg-secondary/10 pl-2" aria-label="User profile and settings menu">
                 <div className="bg-primary/10 p-1.5 rounded-full">
                   <User className="h-4 w-4 text-primary" />
                 </div>
@@ -172,6 +177,7 @@ export default function AppHeader() {
               variant={location.pathname === item.href ? 'default' : 'ghost'}
               size="sm"
               onClick={() => navigate(item.href)}
+              aria-label={item.label}
               className={`flex-shrink-0 rounded-full h-10 w-10 p-0 ${location.pathname === item.href ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground'}`}
             >
               <item.icon className="h-4 w-4" />

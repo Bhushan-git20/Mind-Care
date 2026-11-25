@@ -173,12 +173,13 @@ export default function Habits() {
             <div className="flex items-center gap-2">
               <Input 
                 placeholder="What new habit do you want to build?" 
+                aria-label="New habit name"
                 value={newHabitName}
                 onChange={(e) => setNewHabitName(e.target.value)}
                 className="bg-background border-muted/50 rounded-xl"
                 onKeyDown={(e) => e.key === 'Enter' && addHabit(newHabitName)}
               />
-              <Button onClick={() => addHabit(newHabitName)} disabled={!newHabitName} className="rounded-xl flex-shrink-0">
+              <Button onClick={() => addHabit(newHabitName)} disabled={!newHabitName} aria-label="Add habit" className="rounded-xl flex-shrink-0">
                 <Plus className="h-4 w-4 mr-2" /> Add
               </Button>
             </div>
@@ -187,7 +188,8 @@ export default function Habits() {
               {HABIT_COLORS.map(color => (
                 <button
                   key={color}
-                  className={`h-6 w-6 rounded-full ${color} ${selectedColor === color ? 'ring-2 ring-offset-2 ring-primary/50' : ''}`}
+                  aria-label={`Select ${color.replace('bg-', '')} color`}
+                  className={`h-6 w-6 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${color} ${selectedColor === color ? 'ring-2 ring-offset-2 ring-primary/50' : ''}`}
                   onClick={() => setSelectedColor(color)}
                 />
               ))}
@@ -205,7 +207,13 @@ export default function Habits() {
                     <div>
                       <div className="flex justify-between items-start mb-2">
                         <Badge variant="outline" className={`${habit.color} text-white border-none`}>Active</Badge>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground/50 hover:text-destructive" onClick={() => deleteHabit(habit.id)}>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6 text-muted-foreground/50 hover:text-destructive" 
+                          onClick={() => deleteHabit(habit.id)}
+                          aria-label={`Delete ${habit.name}`}
+                        >
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
@@ -232,7 +240,9 @@ export default function Habits() {
                             <span className="text-[10px] font-medium text-muted-foreground uppercase">{format(day, 'eee')}</span>
                             <button
                               onClick={() => toggleHabit(habit.id, dateStr)}
-                              className={`h-12 w-12 rounded-xl flex items-center justify-center transition-all ${
+                              aria-label={`Mark ${habit.name} ${isDone ? 'incomplete' : 'complete'} for ${format(day, 'MMMM d')}`}
+                              aria-pressed={isDone}
+                              className={`h-12 w-12 rounded-xl flex items-center justify-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                                 isDone 
                                   ? `${habit.color} text-white shadow-sm` 
                                   : 'bg-muted text-transparent hover:bg-muted/80'

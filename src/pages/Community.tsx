@@ -130,6 +130,7 @@ export default function Community() {
           <CardContent className="p-6 space-y-4">
             <Textarea 
               placeholder="Share a win, a struggle, or some words of support..." 
+              aria-label="Share support message with community"
               className="min-h-[100px] resize-none bg-background border-muted"
               value={newPostContent}
               onChange={(e) => setNewPostContent(e.target.value)}
@@ -137,13 +138,22 @@ export default function Community() {
             />
             
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Post category tags">
                 {TAGS.map(t => (
                   <Badge 
                     key={t} 
                     variant={selectedTag === t ? 'default' : 'secondary'}
-                    className="cursor-pointer transition-all px-3 py-1 text-sm font-normal"
+                    className="cursor-pointer transition-all px-3 py-1 text-sm font-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={selectedTag === t}
                     onClick={() => setSelectedTag(t)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedTag(t);
+                      }
+                    }}
                   >
                     {t}
                   </Badge>
@@ -192,8 +202,9 @@ export default function Community() {
                         <Button
                           variant="ghost" 
                           size="sm"
-                          className={`gap-2 rounded-full ${post.isLiked ? 'text-rose-500 bg-rose-50' : 'text-muted-foreground'}`}
+                          className={`gap-2 rounded-full ${post.isLiked ? 'text-rose-500 bg-rose-50 dark:bg-rose-950/30' : 'text-muted-foreground'}`}
                           onClick={() => toggleLike(post.id)}
+                          aria-label={`${post.isLiked ? 'Unlike' : 'Like'} post by ${post.author}`}
                         >
                           <Heart className={`h-4 w-4 ${post.isLiked ? 'fill-current' : ''}`} />
                           {post.likes} {post.likes === 1 ? 'Hug' : 'Hugs'}

@@ -77,7 +77,8 @@ export default function Chat() {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate(-1)} 
-              className="p-2 -ml-2 rounded-full hover:bg-secondary/10 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Go back"
+              className="p-2 -ml-2 rounded-full hover:bg-secondary/10 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -96,14 +97,19 @@ export default function Chat() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-2.5 rounded-full hover:bg-secondary/10 text-muted-foreground hover:text-foreground transition-colors">
+            <button aria-label="Chat settings" className="p-2.5 rounded-full hover:bg-secondary/10 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               <Settings className="w-5 h-5" />
             </button>
           </div>
         </header>
 
         {/* Chat Canvas */}
-        <section className="flex-grow overflow-y-auto px-4 sm:px-6 py-8 space-y-8 scrollbar-hide">
+        <section 
+          role="log"
+          aria-live="polite"
+          aria-label="Chat message history"
+          className="flex-grow overflow-y-auto px-4 sm:px-6 py-8 space-y-8 scrollbar-hide"
+        >
           <div className="max-w-3xl mx-auto flex flex-col gap-8">
             <div className="flex justify-center">
               <span className="px-4 py-1.5 bg-secondary/5 rounded-full text-[10px] uppercase tracking-widest text-muted-foreground font-bold border border-border/50">Today</span>
@@ -154,21 +160,27 @@ export default function Chat() {
         <footer className="p-4 sm:p-6 bg-gradient-to-t from-background via-background to-transparent shrink-0">
           <div className="max-w-3xl mx-auto relative group">
             <div className="bg-card shadow-elevated rounded-full px-6 py-3.5 flex items-center gap-4 border border-border/50 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/30">
-              <button className="p-2 text-muted-foreground hover:text-primary transition-colors">
+              <button aria-label="Add emoji" className="p-2 text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full">
                 <Smile className="w-5 h-5" />
               </button>
               <input 
                 className="flex-grow bg-transparent border-none focus:ring-0 text-foreground placeholder-muted-foreground outline-none text-[15px]" 
                 placeholder="Share your thoughts with MindMate..." 
+                aria-label="Chat message to MindMate"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               />
               <div className="flex items-center gap-2">
-                <button className="p-2 text-muted-foreground hover:text-primary transition-colors hidden sm:block">
+                <button aria-label="Attach document or note" className="p-2 text-muted-foreground hover:text-primary transition-colors hidden sm:block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full">
                   <Paperclip className="w-5 h-5" />
                 </button>
-                <button onClick={handleSend} disabled={!input.trim() || isLoading} className="bg-primary text-primary-foreground p-3 rounded-full flex items-center justify-center hover-lift disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none shadow-md">
+                <button 
+                  onClick={handleSend} 
+                  disabled={!input.trim() || isLoading} 
+                  aria-label="Send message"
+                  className="bg-primary text-primary-foreground p-3 rounded-full flex items-center justify-center hover-lift disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <Send className="w-4 h-4 ml-0.5" />
                 </button>
               </div>

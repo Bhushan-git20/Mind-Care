@@ -130,7 +130,8 @@ export default function Journal() {
           <div>
             <button 
               onClick={() => navigate(-1)} 
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 font-medium text-sm hover:-translate-x-1 duration-200"
+              aria-label="Go back"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6 font-medium text-sm hover:-translate-x-1 duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg p-1"
             >
               <ArrowLeft className="w-4 h-4" /> Back
             </button>
@@ -159,7 +160,9 @@ export default function Journal() {
                 <button 
                   key={mood.label}
                   onClick={() => setSelectedMood(mood.label)}
-                  className={`w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center text-3xl md:text-4xl transition-all duration-300 ${selectedMood === mood.label ? 'ring-2 ring-primary bg-primary/10 transform -translate-y-2 scale-110 shadow-elevated' : 'hover:bg-secondary/10 hover:scale-105 opacity-60 hover:opacity-100'}`}
+                  aria-label={`Select mood: ${mood.label}`}
+                  aria-pressed={selectedMood === mood.label}
+                  className={`w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center text-3xl md:text-4xl transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${selectedMood === mood.label ? 'ring-2 ring-primary bg-primary/10 transform -translate-y-2 scale-110 shadow-elevated' : 'hover:bg-secondary/10 hover:scale-105 opacity-60 hover:opacity-100'}`}
                 >
                   {mood.emoji}
                 </button>
@@ -182,6 +185,7 @@ export default function Journal() {
               <textarea 
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                aria-label="Daily reflection content"
                 className="flex-grow w-full rounded-2xl p-6 text-lg text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 bg-background/50 border border-border/40 transition-all resize-none shadow-inner" 
                 placeholder="Start typing your thoughts here..."
               />
@@ -202,14 +206,18 @@ export default function Journal() {
               <button 
                 onClick={handleSave}
                 disabled={isSaving || !content.trim()}
-                className="w-16 h-16 rounded-full bg-primary flex items-center justify-center group/btn active:scale-95 transition-transform disabled:opacity-50 shadow-lg hover:shadow-xl hover:-translate-y-1"
+                aria-label="Save journal entry"
+                className="w-16 h-16 rounded-full bg-primary flex items-center justify-center group/btn active:scale-95 transition-transform disabled:opacity-50 shadow-lg hover:shadow-xl hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {isSaving ? <Loader2 className="animate-spin text-primary-foreground" /> : (
                   <Save className="text-primary-foreground w-7 h-7 transition-transform group-hover/btn:rotate-12" />
                 )}
                 <span className="absolute -left-20 bg-foreground px-3 py-1.5 rounded-lg text-xs opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none text-background font-bold shadow-md">Save</span>
               </button>
-              <button className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center group/btn active:scale-95 transition-transform shadow-md hover:shadow-lg hover:-translate-y-1">
+              <button 
+                aria-label="Generate new prompt"
+                className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center group/btn active:scale-95 transition-transform shadow-md hover:shadow-lg hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
                 <Wand2 className="text-secondary w-6 h-6 group-hover/btn:scale-110 transition-transform" />
                 <span className="absolute -left-24 bg-foreground px-3 py-1.5 rounded-lg text-xs opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none text-background font-bold shadow-md">New Prompt</span>
               </button>

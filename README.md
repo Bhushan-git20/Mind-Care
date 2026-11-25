@@ -11,53 +11,49 @@
 - **Vibrant & Modern UI**: Built with dynamic light/dark mode themes utilizing Tailwind CSS, Framer Motion, and premium glassmorphism aesthetics.
 - **Science-Backed Self-Assessments**: Standardized clinical questionnaires (PHQ-9 & GAD-7) with immediate risk scoring and longitudinal progress tracking.
 - **AI-Powered Companionship**: Real-time, evidence-based coping suggestions from a supportive AI chatbot running on Supabase Edge Functions via Google's Gemini 2.5 Flash.
-- **Privacy & Safety First**: Fully client-side encrypted environment variables, private journaling, and a robust anonymous peer community feed with active content moderation edge functions.
+- **Privacy & Safety First**: Granular PostgreSQL Row-Level Security (RLS) policies per table, server-side secret management in Supabase Edge Functions (Gemini API key is never exposed to the client), private journaling, and an anonymous student community feed with active content moderation edge functions.
 
 ---
 
-## ✨ Comprehensive Feature Suite
+## ✨ Comprehensive Feature Suite (6 Core Working Modules)
 
-### 🏠 Personalized Dashboard
-- **Wellness Tracker**: Tracks check-in consistency, streaks, and overall wellness score (0–100).
-- **Quick Actions**: One-click navigation to journaling, self-assessments, community, and breathing/habit routines.
-- **Weekly Summary**: Visual preview of wellness metrics and active check-ins.
+### 1. 📋 Mental Wellness Screening Module
+- **Primary Source File**: [`src/pages/Assessments.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Assessments.tsx) | [`src/components/assessments/AssessmentForm.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/components/assessments/AssessmentForm.tsx)
+- **Standardized Questionnaires**: Combined PHQ-9 (9 items, Depression screening) & GAD-7 (7 items, Anxiety screening) with intuitive 0–3 frequency selectors.
+- **Deterministic Severity Banding**: Instant client-side scoring mapping raw points to validated severity tiers (`minimal`, `mild`, `moderate`, `moderately_severe`, `severe`) defined in [`src/data/assessmentQuestions.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/data/assessmentQuestions.ts).
+- **Suicidal Ideation Circuit-Breaker**: Immediate high-risk routing and helpline presentation if PHQ-9 item 9 is scored > 0, regardless of composite score.
+- **Edge Function Evaluation**: Dedicated Supabase Edge Function ([`supabase/functions/evaluate-assessment/index.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/supabase/functions/evaluate-assessment/index.ts)) securely evaluates nuanced emotional context with Gemini 2.5 Flash and persists records under authenticated user RLS.
 
-### 📋 Science-Backed Self-Assessments
-- **Standardized Questionnaires**: PHQ-9 (Depression severity) & GAD-7 (Anxiety severity) with intuitive multi-choice selectors.
-- **Dynamic Scoring**: Instant feedback mapping scores to clinical severity levels (Minimal, Mild, Moderate, Moderately Severe, Severe).
-- **Edge Function Evaluation**: Dedicated Supabase Edge Function to securely calculate and record assessment scores.
+### 2. 🤖 3-Tier AI Chatbot Companion
+- **Primary Source File**: [`src/pages/Chat.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Chat.tsx) | [`supabase/functions/chatbot/index.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/supabase/functions/chatbot/index.ts)
+- **Tier 1 (Safety Guardrail)**: Deterministic regex/keyword scanner against acute crisis indicators (`suicide`, `self-harm`, etc.). Bypasses LLM immediately to present verified emergency hotlines (iCall, Vandrevala Foundation, NIMHANS).
+- **Tier 2 (FAQ Knowledge Match)**: Instant PostgreSQL lookup against `chatbot_faqs` table for active student psychoeducation answers at zero latency and zero token cost.
+- **Tier 3 (Generative AI Reasoning)**: Multi-turn conversational guidance powered by Google Gemini 2.5 Flash with strict psychoeducational boundaries (non-clinical, empathetic coping strategies, student-centric advice).
 
-### 📓 Mood-Coded Journaling
-- **AI Sentiment Tagging**: Journal entries automatically analyzed for emotional sentiment (Positive, Neutral, Negative) upon submission.
-- **Glassmorphic Calendar View**: A beautiful mood calendar showing historical daily emotional states.
-- **Private Reflections**: Secure local database journal entries for daily thoughts.
+### 3. 📓 Mood-Coded Journaling
+- **Primary Source File**: [`src/pages/Journal.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Journal.tsx) | [`supabase/functions/analyze-journal/index.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/supabase/functions/analyze-journal/index.ts)
+- **Private Reflections**: User entries saved directly to `journal_entries` PostgreSQL table strictly protected by Row-Level Security (`auth.uid() = user_id`).
+- **AI Sentiment Tagging**: Asynchronous sentiment analysis categorizing entries (Positive, Neutral, Negative) and flagging elevated risk patterns.
+- **Mood History**: Visual mood selector and chronological reflective feed.
 
-### 🧘 Interactive Habit Tracking
-- **Habit Builder**: Interactive daily habit check-ins (e.g., Meditation, Hydration, Sleep, Exercise).
-- **Consistency Grid**: Beautiful 7-day visual progress grid to build positive mental wellness routines.
-- **Streaks & Analysis**: Monitors consecutive days of completion to keep students motivated.
+### 4. 🧘 Interactive Habit Tracking
+- **Primary Source File**: [`src/pages/Habits.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Habits.tsx)
+- **Resilience Routines**: Daily habit trackers (Morning Meditation, Hydration, Sleep Hygiene, Screen Breaks, Physical Exercise).
+- **Streak & Consistency Matrix**: Rolling 7-day completion grid calculating consecutive completion streaks to encourage student consistency.
+- **AI Recommendations**: Suggestions inferred from screening summaries to suggest personalized wellness habits.
 
-### 🤝 Anonymous Community Feed
-- **Peer Support Safe Space**: Read and share positive, supportive posts anonymously with other students.
-- **Positive Mood Tags**: Categorize community posts with uplifting tags (Gratitude, Support, Progress).
-- **Moderate Post Edge Function**: Automatic content moderation to filter out sensitive or toxic content, keeping the community safe and encouraging.
+### 5. 🤝 Anonymous Peer Support Community
+- **Primary Source File**: [`src/pages/Community.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Community.tsx) | [`supabase/functions/moderate-post/index.ts`](file:///d:/ANTI%20GRAVITY/Mind%20care/supabase/functions/moderate-post/index.ts)
+- **Safe Student Space**: Anonymous student peer sharing board with pseudonymous avatars and categorized tags (`#Wins`, `#Support`, `#Gratitude`, `#Struggles`).
+- **Pre-Publish Content Moderation**: Edge Function runs input through content safety filters to block toxic or sensitive content before publication.
+- **Interactive Peer Hugs**: Uplifting peer reactions and encouragement counters.
 
-### 🤖 Real-Time AI Chatbot
-- **Responsive Guidance**: Empathetic, real-time wellness support powered by Gemini 2.5 Flash.
-- **Coping Strategies**: Suggests mindfulness techniques, CBT exercises, and focus improvements.
-- **Emergency Routing**: Detects crisis keywords and instantly overlays local helpline resources.
-
-### 📊 Insights, Trends & History
-- **Interactive Charts**: Beautiful data visualizations of depression and anxiety trends over time using Recharts.
-- **History Logs**: Detailed tables and logs of all past PHQ-9/GAD-7 assessments, scores, and reflections to track long-term progress.
-
-### 📚 Curated Resources Library
-- **Educational Library**: Handpicked wellness articles, audio guides, and videos categorized by topic (Stress, Sleep, Focus, Mindfulness).
-- **Helplines Catalog**: Easily accessible links and numbers for professional counseling and campus support.
-
-### 🛡️ Admin & Supervisor Panel
-- **User Dashboard**: Platform engagement analytics and risk alert flags for super-admin or counseling supervisors.
-- **Content CRUD**: Full dashboard to Create, Read, Update, and Delete articles, resources, and helpline details directly.
+### 6. 🛡️ Multi-Role Admin & Supervisor Panel
+- **Primary Source File**: [`src/pages/Admin.tsx`](file:///d:/ANTI%20GRAVITY/Mind%20care/src/pages/Admin.tsx)
+- **Role-Based Access Control (RBAC)**: Enforced via `user_roles` PostgreSQL table and `public.has_role(auth.uid(), 'admin')` security definer checks.
+- **User Role Management**: Promotes/demotes user roles across `student`, `counselor`, and `admin` tiers.
+- **Risk Alert Center**: Aggregates automated risk alerts from student assessment spikes for counselor supervisor visibility.
+- **Content CRUD**: Full administrative creation and editing of verified campus resources, wellness articles, and emergency contacts.
 
 ---
 
@@ -105,6 +101,7 @@ Mind-Care/
 │   │   └── Admin.tsx     # Administrator analytics & Resource CRUD
 │   ├── components/      # Glassmorphic shells, forms, charts, & navigation
 │   ├── hooks/           # Custom React hooks (useAuth, etc.)
+│   ├── test/            # Vitest unit & RLS isolation test suites
 │   ├── integrations/    # Supabase connection client
 │   └── index.css        # Core styling, HSL color tokens, glassmorphic filters
 ├── supabase/
@@ -115,6 +112,21 @@ Mind-Care/
 │       ├── moderate-post/        # Content moderation for community board
 │       └── analyze-journal/      # Mood sentiment analysis on journal text
 └── package.json
+```
+
+---
+
+## 🧪 Testing & Continuous Integration
+
+MindCare includes automated unit tests, clinical scoring verification, and database security isolation tests via Vitest:
+
+- **Screening & Scoring Tests**: [`src/test/assessment-scoring.test.ts`](src/test/assessment-scoring.test.ts) (18 unit tests validating PHQ-9 & GAD-7 boundary conditions, cutoffs, and suicidal ideation circuit-breaker logic).
+- **Row-Level Security (RLS) Isolation Tests**: [`src/test/rls-isolation.test.ts`](src/test/rls-isolation.test.ts) (15 tests verifying dual-account isolation between students Alice and Bob, preventing cross-tenant reads, spoofed writes, and unauthorized role elevation).
+- **CI Workflow**: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) executes linting, unit tests (33/33 passing), and production build on every push and pull request.
+
+Run tests locally:
+```bash
+npm test
 ```
 
 ---
@@ -145,11 +157,15 @@ VITE_SUPABASE_PROJECT_ID=your-supabase-project-id
 ```
 *(Note: `.env` is already configured in `.gitignore` to prevent any credentials from being pushed to Git).*
 
+> **API Key Architecture & Public Anon Key**: The `VITE_SUPABASE_PUBLISHABLE_KEY` is a public client key by Supabase design. PostgreSQL Row-Level Security (RLS) policies enforce table-level access, not client key obscurity. Private secrets (like `GEMINI_API_KEY`) live strictly server-side in Supabase Edge Functions and are never transmitted to the browser.
+
+> **Supabase Free-Tier Inactivity Pausing**: Like all free-tier Supabase instances, projects automatically pause after 7 days of inactivity. When paused, DNS and API routes do not resolve until reactivated. If demonstrating the app, simply log into your [Supabase Dashboard](https://supabase.com/dashboard) and click **Restore project**. Do not set up automated pinging scripts, as that violates Supabase Free-Tier Terms of Service.
+
 ### 4️⃣ Start Local Development Server
 ```bash
 npm run dev
 ```
-Open [http://localhost:8080](http://localhost:8080) to access the application.
+Open [http://localhost:8501](http://localhost:8501) to access the application.
 
 ---
 
